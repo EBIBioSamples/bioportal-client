@@ -209,22 +209,25 @@ public class BioportalClient
 	public Ontology getOntology ( String acronym )
 	{
 		acronym = acronym.toUpperCase ();
+		Ontology result;
 		
-		Ontology result = this.ontologyCache.get ( acronym );
-		// We store null results, to avoid further searches
-		if ( result != null ) return "__NULL_ONTO__".equals ( result.getAcronym () ) ? null : result;
-				
-		JsonNode jonto = BioportalWebServiceUtils.invokeBioportal ( "/ontologies/" + acronym, this.apiKey );
-		if ( jonto == null ) 
+		synchronized ( acronym.intern () )
 		{
-			this.ontologyCache.put ( acronym, new Ontology ( "__NULL_ONTO__" ) );
-			return null;
+			result = this.ontologyCache.get ( acronym );
+			// We store null results, to avoid further searches
+			if ( result != null ) return "__NULL_ONTO__".equals ( result.getAcronym () ) ? null : result;
+					
+			JsonNode jonto = BioportalWebServiceUtils.invokeBioportal ( "/ontologies/" + acronym, this.apiKey );
+			if ( jonto == null ) 
+			{
+				this.ontologyCache.put ( acronym, new Ontology ( "__NULL_ONTO__" ) );
+				return null;
+			}
+			
+			result = new Ontology ( acronym );
+			result.setName ( jonto.get ( "name" ).asText () );
+			this.ontologyCache.put ( acronym, result );
 		}
-		
-		result = new Ontology ( acronym );
-		result.setName ( jonto.get ( "name" ).asText () );
-		this.ontologyCache.put ( acronym, result );
-
 		
 		// Gets the likely URI prefix for building the URI of ontology terms.
 		// 
