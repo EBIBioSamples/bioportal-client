@@ -64,7 +64,7 @@ public class BioportalClient
 	}};
 	
 	protected final String apiKey; 
-	private SimpleCache<String, Ontology> ontologyCache = new SimpleCache<> ( 1000 );
+	private SimpleCache<String, Ontology> ontologyCache = new SimpleCache<> ( 500000 );
 	
 	public BioportalClient ( String bioportalApiKey )
 	{
@@ -211,10 +211,15 @@ public class BioportalClient
 		acronym = acronym.toUpperCase ();
 		
 		Ontology result = this.ontologyCache.get ( acronym );
-		if ( result != null ) return result;
-		
+		// We store null results, to avoid further searches
+		if ( result != null ) return "__NULL_ONTO__".equals ( result.getAcronym () ) ? null : result;
+				
 		JsonNode jonto = BioportalWebServiceUtils.invokeBioportal ( "/ontologies/" + acronym, this.apiKey );
-		if ( jonto == null ) return null;
+		if ( jonto == null ) 
+		{
+			this.ontologyCache.put ( acronym, new Ontology ( "__NULL_ONTO__" ) );
+			return null;
+		}
 		
 		result = new Ontology ( acronym );
 		result.setName ( jonto.get ( "name" ).asText () );
