@@ -1,5 +1,6 @@
 package uk.ac.ebi.bioportal.webservice.client;
 
+import static java.net.URLEncoder.encode;
 import static uk.ac.ebi.bioportal.webservice.utils.BioportalWebServiceUtils.buildOntologyClass;
 import static uk.ac.ebi.bioportal.webservice.utils.BioportalWebServiceUtils.collectOntoClasses;
 import static uk.ac.ebi.bioportal.webservice.utils.BioportalWebServiceUtils.collectOntoClassesFromPagedResult;
@@ -11,6 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import uk.ac.ebi.bioportal.webservice.exceptions.OntologyServiceException;
 import uk.ac.ebi.bioportal.webservice.model.Ontology;
@@ -95,7 +98,7 @@ public class BioportalClient
 			}
 			
 			JsonNode jclass = invokeBioportal ( 
-				"/ontologies/" + ontologyAcronym.toUpperCase () + "/classes/" +	URLEncoder.encode ( classUri, "UTF-8" ),
+				"/ontologies/" + encode ( ontologyAcronym.toUpperCase (), "UTF-8" ) + "/classes/" +	encode ( classUri, "UTF-8" ),
 				this.apiKey
 			);
 
@@ -140,7 +143,7 @@ public class BioportalClient
 			}
 
 			String servicePath = 
-				"/ontologies/" + ontologyAcronym.toUpperCase () + "/classes/" +	URLEncoder.encode ( classUri, "UTF-8" ) +
+				"/ontologies/" + encode ( ontologyAcronym.toUpperCase (), "UTF-8" ) + "/classes/" +	URLEncoder.encode ( classUri, "UTF-8" ) +
 				"/" + collectionTypeId;
 			
 			return isPaged  
@@ -208,49 +211,57 @@ public class BioportalClient
 	 */
 	public Ontology getOntology ( String acronym )
 	{
-		acronym = acronym.toUpperCase ();
-		Ontology result;
-		
-		synchronized ( acronym.intern () )
+		try
 		{
-			result = this.ontologyCache.get ( acronym );
-			// We store null results, to avoid further searches
-			if ( result != null ) return "__NULL_ONTO__".equals ( result.getAcronym () ) ? null : result;
-					
-			JsonNode jonto = BioportalWebServiceUtils.invokeBioportal ( "/ontologies/" + acronym, this.apiKey );
-			if ( jonto == null ) 
+			acronym = acronym.toUpperCase ();
+			String encodedAcronym = encode ( acronym, "UTF-8" );
+			Ontology result;
+			
+			synchronized ( acronym.intern () )
 			{
-				this.ontologyCache.put ( acronym, new Ontology ( "__NULL_ONTO__" ) );
-				return null;
+				result = this.ontologyCache.get ( acronym );
+				// We store null results, to avoid further searches
+				if ( result != null ) return "__NULL_ONTO__".equals ( result.getAcronym () ) ? null : result;
+						
+				JsonNode jonto = BioportalWebServiceUtils.invokeBioportal ( "/ontologies/" + encodedAcronym, this.apiKey );
+				if ( jonto == null ) 
+				{
+					this.ontologyCache.put ( acronym, new Ontology ( "__NULL_ONTO__" ) );
+					return null;
+				}
+				
+				result = new Ontology ( acronym );
+				result.setName ( jonto.get ( "name" ).asText () );
+				this.ontologyCache.put ( acronym, result );
 			}
 			
-			result = new Ontology ( acronym );
-			result.setName ( jonto.get ( "name" ).asText () );
-			this.ontologyCache.put ( acronym, result );
-		}
-		
-		// Gets the likely URI prefix for building the URI of ontology terms.
-		// 
-		String classUriPrefix = KNOWN_ONTOLOGY_CLASS_URI_PREFIXES.get ( acronym ); // Is it already known?
-		if ( classUriPrefix != null ) 
-		{
+			// Gets the likely URI prefix for building the URI of ontology terms.
+			// 
+			String classUriPrefix = KNOWN_ONTOLOGY_CLASS_URI_PREFIXES.get ( acronym ); // Is it already known?
+			if ( classUriPrefix != null ) 
+			{
+				result.setClassUriPrefix ( classUriPrefix );
+				return result;
+			}
+			// If not, try with the first ontology class
+			JsonNode jclasses = invokeBioportal ( "/ontologies/" + encodedAcronym + "/classes", this.apiKey, "pagesize", "2" );
+			String classUri = jclasses.at ( "/collection/0/@id" ).asText ();
+			if ( classUri == null ) return result;
+			
+			// Try to remove the trailing accession, by looking at common splitters 
+			int brkIdx = classUri.lastIndexOf ( '#' );
+			if ( brkIdx == -1 )	brkIdx = classUri.lastIndexOf ( '/' );
+			if ( brkIdx == -1 ) return result;
+			
+			// Got it!
+			classUriPrefix = classUri.substring ( 0, brkIdx + 1 );
 			result.setClassUriPrefix ( classUriPrefix );
-			return result;
-		}
-		// If not, try with the first ontology class
-		JsonNode jclasses = invokeBioportal ( "/ontologies/" + acronym + "/classes", this.apiKey, "pagesize", "2" );
-		String classUri = jclasses.at ( "/collection/0/@id" ).asText ();
-		if ( classUri == null ) return result;
-		
-		// Try to remove the trailing accession, by looking at common splitters 
-		int brkIdx = classUri.lastIndexOf ( '#' );
-		if ( brkIdx == -1 )	brkIdx = classUri.lastIndexOf ( '/' );
-		if ( brkIdx == -1 ) return result;
-		
-		// Got it!
-		classUriPrefix = classUri.substring ( 0, brkIdx + 1 );
-		result.setClassUriPrefix ( classUriPrefix );
 
-		return result;
+			return result;
+		} 
+		catch ( UnsupportedEncodingException ex )
+		{
+			throw new IllegalArgumentException ( "Charset error while fetching ontology: '" + acronym + "': " + ex.getMessage (), ex );
+		}
 	}
 }
