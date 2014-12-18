@@ -12,9 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import uk.ac.ebi.bioportal.webservice.exceptions.OntologyServiceException;
 import uk.ac.ebi.bioportal.webservice.model.Ontology;
 import uk.ac.ebi.bioportal.webservice.model.OntologyClass;
@@ -67,7 +64,9 @@ public class BioportalClient
 	}};
 	
 	protected final String apiKey; 
-	private SimpleCache<String, Ontology> ontologyCache = new SimpleCache<> ( 500000 );
+	private SimpleCache<String, OntologyClass> classCache = new SimpleCache<> ( 300000 );
+	private SimpleCache<String, Ontology> ontologyCache = new SimpleCache<> ( 300000 );
+
 	
 	public BioportalClient ( String bioportalApiKey )
 	{
@@ -76,7 +75,9 @@ public class BioportalClient
 	}
 
 	/**
-	 * The details about an ontology class/term
+	 * The details about an ontology class/term.
+	 * This is internally cached and a new cache is created upon every new instance of this class.
+	 *  
 	 * @param accession might be either an accession like EFO_0000001, or a full URI (starting with http://)
 	 */
 	public OntologyClass getOntologyClass ( String ontologyAcronym, String accession )
@@ -97,12 +98,31 @@ public class BioportalClient
 				classUri = ontoUriPrefix + accession;
 			}
 			
-			JsonNode jclass = invokeBioportal ( 
-				"/ontologies/" + encode ( ontologyAcronym.toUpperCase (), "UTF-8" ) + "/classes/" +	encode ( classUri, "UTF-8" ),
-				this.apiKey
-			);
+			synchronized ( classUri.intern () )
+			{
+				OntologyClass result = classCache.get ( classUri );
+				if ( result != null )
+				{
+					if ( "".equals ( result.getIri () ) ) return null;
+					return result;
+				}
+				
+				JsonNode jclass = invokeBioportal ( 
+					"/ontologies/" + encode ( ontologyAcronym.toUpperCase (), "UTF-8" ) + "/classes/" +	encode ( classUri, "UTF-8" ),
+					this.apiKey
+				);
+	
+				result = jclass == null ? null : buildOntologyClass ( ontologyAcronym, jclass );
+				if ( result == null ) {
+					result = new OntologyClass ( "" );
+					classCache.put ( classUri, result );
+					return null;
+				}
+				
+				classCache.put ( classUri, result );
 
-			return jclass == null ? null : buildOntologyClass ( ontologyAcronym, jclass );
+				return result;
+			} // synchronized ( classUri )
 		} 
 		catch ( UnsupportedEncodingException ex )
 		{
