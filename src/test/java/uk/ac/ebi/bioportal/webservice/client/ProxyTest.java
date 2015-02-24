@@ -29,8 +29,8 @@ public class ProxyTest
 		out.println ( "------- From Remote ------" );
 		out.println (
 			IOUtils.readInputFully ( 
-				new InputStreamReader ( new URL ( "http://www.ebi.ac.uk" ).openStream () ) 
-			).substring ( 0, 200 ) 
+				new InputStreamReader ( new URL ( "http://www.google.com" ).openStream () ) 
+			).substring ( 0, 400 ) 
 		);
 		out.println ( "------- ------\n\n" );
 	}
