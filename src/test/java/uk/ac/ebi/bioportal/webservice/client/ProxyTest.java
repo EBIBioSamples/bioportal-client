@@ -7,12 +7,13 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.ebi.utils.io.IOUtils;
 
 /**
- * TODO: comment me!
+ * Foo test, used due to problems with Bamboo and proxy.
  *
  * @author brandizi
  * <dl><dt>Date:</dt><dd>24 Feb 2015</dd>
@@ -20,11 +21,11 @@ import uk.ac.ebi.utils.io.IOUtils;
  */
 public class ProxyTest
 {
-	@Test
+	@Test @Ignore
 	public void testProxy () throws MalformedURLException, IOException
 	{
-		out.println ( "------- http.proxyHost = " + System.getProperty ( "http.proxyHost" ) );
-		out.println ( "------- http.proxyPort = " + System.getProperty ( "http.proxyPort" ) );
+		out.println ( "------- http.proxyHost = '" + System.getProperty ( "http.proxyHost" ) + "'");
+		out.println ( "------- http.proxyPort = " + System.getProperty ( "http.proxyPort" ) + "'" );
 		
 		out.println ( "------- From Remote ------" );
 		out.println (
