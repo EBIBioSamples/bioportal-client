@@ -70,4 +70,13 @@ public class Ontology
 		this.classUriPrefix = classUriPrefix;
 	}
 	
+	@Override
+	public String toString ()
+	{
+		return String.format ( 
+			"%s { aconym: '%s', name: '%s', classUriPrefix <%s> }", 
+			this.getClass ().getSimpleName (), this.getAcronym (), this.getName (), this.getClassUriPrefix ()
+		);
+	}
+	
 }

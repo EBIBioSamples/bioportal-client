@@ -1,6 +1,9 @@
 package uk.ac.ebi.bioportal.webservice.model;
 
+import java.util.Collections;
 import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A simple model of an ontology class (aka term), as it is represented by the Bioportal web service.
@@ -89,4 +92,14 @@ public class OntologyClass
 		this.isObsolete = isObsolete;
 	}
 	
+	@Override
+	public String toString ()
+	{
+		return String.format ( 
+			"%s { iri: <%s>, preferredLabel: '%s', ontologyAcronym: '%s', synonyms: [ %.100s ], definitions: [ %.100s ] }", 
+			this.getClass ().getSimpleName (), this.getIri (), this.getPreferredLabel (), this.getOntologyAcronym (), 
+			StringUtils.join ( this.getSynonyms (), ", " ),
+			StringUtils.join ( this.getDefinitions (), ", " )
+		);
+	}
 }

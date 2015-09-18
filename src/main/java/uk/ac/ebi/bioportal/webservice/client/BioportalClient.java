@@ -15,6 +15,10 @@ import java.util.Set;
 import uk.ac.ebi.bioportal.webservice.exceptions.OntologyServiceException;
 import uk.ac.ebi.bioportal.webservice.model.Ontology;
 import uk.ac.ebi.bioportal.webservice.model.OntologyClass;
+import uk.ac.ebi.bioportal.webservice.model.TextAnnotation;
+import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.ClassRef;
+import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.HierarchyEntry;
+import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.Annotation;
 import uk.ac.ebi.bioportal.webservice.utils.BioportalWebServiceUtils;
 import uk.ac.ebi.utils.memory.SimpleCache;
 
@@ -61,6 +65,13 @@ public class BioportalClient
 		put ( "MIXS", "http://gensc.org/ns/mixs/" );
 		put ( "CTONT", "http://epoch.stanford.edu/ClinicalTrialOntology.owl#OperationalPlan" );
 		put ( "BAO", "http://www.bioassayontology.org/bao#" );
+		put ( "SIO", "http://semanticscience.org/resource/" );
+		put ( "NCBITAXON", "http://purl.bioontology.org/ontology/NCBITAXON/" );
+		put ( "UO", "http://purl.obolibrary.org/obo/" );
+		put ( "UBERON", "http://purl.obolibrary.org/obo/" );
+		put ( "IAO", "http://purl.obolibrary.org/obo/" );
+		put ( "OBI", "http://purl.obolibrary.org/obo/" );
+		put ( "BFO", "http://purl.obolibrary.org/obo/" );
 	}};
 	
 	protected final String apiKey; 
@@ -279,9 +290,96 @@ public class BioportalClient
 
 			return result;
 		} 
+		catch ( UnsupportedEncodingException ex ) 
+		{
+			throw new IllegalArgumentException ( 
+				"Charset error while fetching ontology: '" + acronym + "': " + ex.getMessage (), ex 
+			);
+		}
+	}
+	
+	
+	/**
+	 * TODO: comment me!
+	 * 
+	 */
+	public TextAnnotation[] getTextAnnotations ( String text, String... otherProps )
+	{
+		try
+		{
+			TextAnnotation result[];
+			String bpParams[];
+			
+			if ( otherProps != null && otherProps.length > 0 ) 
+			{
+				// TODO: Use commons
+				bpParams = new String [ 2 + otherProps.length ];
+				for ( int i = 0; i < otherProps.length; i++ )
+				{
+					bpParams [ i + 2 ] = otherProps [ i ];
+					bpParams [ ++i + 2 ] = otherProps [ i ];
+				}
+			}
+			else
+				bpParams = new String [ 2 ];
+			
+			bpParams [ 0 ] = "text";
+			bpParams [ 1 ] = encode ( text, "UTF-8" );
+			
+			JsonNode jsanns = invokeBioportal ( "/annotator", this.apiKey, bpParams );
+			if ( jsanns == null ) return new TextAnnotation [ 0 ];
+					
+			result = new TextAnnotation[ jsanns.size () ];
+			
+			int i = 0;
+			for ( JsonNode jsann: jsanns )
+			{
+				{
+					JsonNode annClass = jsann.get ( "annotatedClass" );
+					String clsIri = annClass.get ( "@id" ).asText ();
+					String ontoUri = annClass.get ( "links" ).get ( "ontology" ).asText ();
+					String ontoAcronym = ontoUri.substring ( "http://data.bioontology.org/ontologies/".length () );
+									
+					result [ i ] = new TextAnnotation ( new ClassRef ( clsIri, ontoAcronym ) );
+				}
+				
+				JsonNode jshs = jsann.get ( "hierarchy" );
+				HierarchyEntry[] hes = new HierarchyEntry[ jshs.size () ];
+				int ih = 0;
+				for ( JsonNode jsh: jshs )
+				{
+					JsonNode annClass = jsh.get ( "annotatedClass" );
+					String clsIri = annClass.get ( "@id" ).asText ();
+					String ontoUri = annClass.get ( "links" ).get ( "ontology" ).asText ();
+					String ontoAcronym = ontoUri.substring ( "http://data.bioontology.org/ontologies/".length () );
+					int distance = jsh.get ( "distance" ).asInt ();
+					
+					hes [ ih++ ] = new HierarchyEntry ( new ClassRef ( clsIri, ontoAcronym ), distance );
+				}
+				result [ i ].setHierarchy ( hes );
+
+				JsonNode jstanns = jsann.get ( "annotations" );
+				Annotation [] textAnns = new Annotation [ jstanns.size () ];
+				int ia = 0;
+				for ( JsonNode jsa: jstanns )
+				{
+					textAnns [ ia++ ] = new Annotation (
+						jsa.get ( "from" ).asInt (), 
+						jsa.get ( "to" ).asInt (), 
+						jsa.get ( "matchType" ).asText (),
+						jsa.get ( "text" ).asText () 
+					);
+				}
+				result [ i++ ].setAnnotations ( textAnns ); 
+			}
+			
+			return result;
+		}
 		catch ( UnsupportedEncodingException ex )
 		{
-			throw new IllegalArgumentException ( "Charset error while fetching ontology: '" + acronym + "': " + ex.getMessage (), ex );
-		}
+			throw new IllegalArgumentException (
+				"Charset error while invoking the annotator with: '" + text + "': " + ex.getMessage (), ex 
+			);
+		}		
 	}
 }
