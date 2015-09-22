@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation;
 
 /**
- * TODO: comment me!
+ * Some tests for {@link BioportalClient#getTextAnnotations(String, String...)}.
  *
  * @author brandizi
  * <dl><dt>Date:</dt><dd>5 Aug 2015</dd>
@@ -18,7 +18,6 @@ import uk.ac.ebi.bioportal.webservice.model.TextAnnotation;
 public class TextAnnotatorTest
 {
 	private static BioportalClient bpcli = new BioportalClient ( BioportalClientTest.API_KEY );
-
 	private Logger log = LoggerFactory.getLogger ( this.getClass () );
 	
 	@Test
@@ -32,18 +31,18 @@ public class TextAnnotatorTest
 		for ( TextAnnotation ta: tas )
 		{
 			log.info ( "Returned text annotation: {}", ta );
-			found = found || "http://purl.obolibrary.org/obo/NCBITaxon_9605".equals ( ta.getAnnotatedClass ().getClassIri () );
+			found = found || "http://purl.obolibrary.org/obo/NCBITaxon_9606".equals ( ta.getAnnotatedClass ().getClassIri () );
 		}
 		
-		assertTrue ( "the text annotator doesn't return NCBITaxon_9605!", found );
+		assertTrue ( "the text annotator doesn't return NCBITaxon_9606!", found );
 	}
 	
 	@Test
 	public void testConstrainedOntologies ()
 	{
-		// OBI,MESH,FMA,IAO,HP,BAO,MA,ICD10CM,NIFSTD,DOI,IDO,LOINC,OMIM,SIO,CLO,FHHO
 		TextAnnotation[] tas = bpcli.getTextAnnotations ( "mus musculus", 
-			"ontologies", "EFO,UBERON,CL,CHEBI,BTO,GO", "longest_only", "true" 
+			"ontologies", "EFO,UBERON,CL,CHEBI,BTO,GO,OBI,MESH,FMA,IAO,HP,BAO,MA,ICD10CM,NIFSTD,DOID,IDO,LOINC,OMIM,SIO,CLO,FHHO", 
+			"longest_only", "true" 
 		);
 		assertTrue ( "No text annotation from Bioportal annotator (with 'ontologies' parameter)!", tas.length > 0 );
 		
@@ -52,10 +51,10 @@ public class TextAnnotatorTest
 		for ( TextAnnotation ta: tas )
 		{
 			log.info ( "Returned text annotation: {}", ta );
-			found = found || "http://purl.obolibrary.org/obo/NCBITaxon_10088".equals ( ta.getAnnotatedClass ().getClassIri () );
+			found = found || "http://purl.obolibrary.org/obo/NCBITaxon_10090".equals ( ta.getAnnotatedClass ().getClassIri () );
 		}
 		
-		assertTrue ( "the text annotator doesn't return NCBITaxon_10088 (with 'ontologies' parameter)!", found );
+		assertTrue ( "the text annotator doesn't return NCBITaxon_10090 (with 'ontologies' parameter)!", found );
 	}
 
 }

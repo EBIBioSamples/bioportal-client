@@ -2,11 +2,15 @@ package uk.ac.ebi.bioportal.webservice.model;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import uk.ac.ebi.bioportal.webservice.client.BioportalClient;
+
 
 /**
- * TODO: comment me!
- * TODO: we still haven't unclear what mappings, on the first level of the JSON result is for, ignored and not
- * supported at the moment.
+ * <p>A Java representation of the JSON results coming from the annotator API.
+ * @see {@link BioportalClient#getTextAnnotations(String, String...)}</p>
+ * 
+ * <p>TODO: we still haven't unclear what 'mappings', a field on the first level of the JSON result is for. This is 
+ * ignored/unsupported at the moment.</p>
  * 
  * @author brandizi
  * <dl><dt>Date:</dt><dd>4 Aug 2015</dd>
