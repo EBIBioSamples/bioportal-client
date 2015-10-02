@@ -61,13 +61,13 @@ public class BioportalOntoTermDiscoverer extends OntologyTermDiscoverer
 	@Override
 	public List<DiscoveredTerm> getOntologyTerms ( String valueLabel, String typeLabel ) throws OntologyDiscoveryException
 	{
+		if ( (valueLabel = StringUtils.trimToNull ( valueLabel )) == null ) return NULL_RESULT;
+
 		if ( this.statsSamplingTime > 0 && statsTimer.isStopped () ) statsTimer.start ();
 		long callStartTime = this.minCallDelay == 0 ? 0 : System.currentTimeMillis ();			
 		
 		try
 		{
-			if ( (valueLabel = StringUtils.trimToNull ( valueLabel )) == null ) return NULL_RESULT;
-
 			TextAnnotation[] anns;
 
 			// First, try with ontologies of interest, if available
