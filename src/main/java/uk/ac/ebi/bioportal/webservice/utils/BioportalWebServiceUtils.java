@@ -15,6 +15,10 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.bioportal.webservice.exceptions.OntologyServiceException;
 import uk.ac.ebi.bioportal.webservice.model.OntologyClass;
+import uk.ac.ebi.utils.runcontrol.ChainedWrappedInvoker;
+import uk.ac.ebi.utils.runcontrol.RateLimitedInvoker;
+import uk.ac.ebi.utils.runcontrol.StatsInvoker;
+import uk.ac.ebi.utils.runcontrol.WrappedInvoker;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,12 +33,38 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class BioportalWebServiceUtils
 {
 	/**
+	 * Send in a property with this to change the period that we log statistics on issued calls.
+	 */
+	public static final String STATS_SAMPLING_TIME_PROP_NAME = "uk.ac.ebi.bioportal.stats_sampling_time";
+
+	/**
 	 * Should it happen that the server side changes this, you can reflect that here.
 	 */
 	public static String bioportalBaseUrl = "http://data.bioontology.org";
+	
+	/**
+	 * We provide these, in case you want to tweak their parameters. 
+	 */
+	public static final RateLimitedInvoker RATE_LIMITING_WRAPPER = new RateLimitedInvoker ( 15 );
+	public static final StatsInvoker STATS_WRAPPER = new StatsInvoker ( 
+		"BioPortal", Long.parseLong ( System.getProperty ( STATS_SAMPLING_TIME_PROP_NAME, "" + 5 * 60 * 1000 ) ) 
+	);
 		
+	
 	private static Logger log = LoggerFactory.getLogger ( BioportalWebServiceUtils.class );
 
+	/**
+	 * This is used in {@link #invokeBioportal(String, String, String...)}, We have wrap that call with
+	 * both a {@link RateLimitedInvoker rate limit wrapper} and a {@link StatsInvoker statistical reporter}.  
+	 * The former is needed because Bioportal's server doesn't like to be hammered at speeds higher than 
+	 * 15 calls/sec per process.
+	 */
+	private static WrappedInvoker<Boolean> wrapInvoker = new ChainedWrappedInvoker<Boolean> (
+		RATE_LIMITING_WRAPPER,
+		  STATS_WRAPPER
+	);  
+	
+	
 	/**
 	 * Builds our {@link OntologyClass} representation, using the JSON returned by a Bioportal web service for a class.
 	 */
@@ -93,11 +123,14 @@ public class BioportalWebServiceUtils
 	{
 		if ( result == null ) result = new HashSet<> ();
 		JsonNode json = invokeBioportal ( unpagedServicePath, apiKey );
+		if ( json == null ) return result;
+		
 		JsonNode jpageCount = json.get ( "pageCount" );
 		int pageCt = jpageCount == null ? 1 : jpageCount.asInt ( 1 );
 		for ( int page = 1; page <= pageCt; page++ )
 		{
 			if ( page > 1 ) json = invokeBioportal ( unpagedServicePath, apiKey, "page" + page );
+			if ( json == null ) continue;
 			
 			JsonNode jterms = json.get ( "collection" );
 			if ( jterms != null ) 
@@ -147,30 +180,44 @@ public class BioportalWebServiceUtils
 	 * Invokes a Bioportal web service service. Builds the URL via {@link #getBioPortalUrl(String, String...)}, 
 	 * then it appends the apiKey to the HTTP request headers, as well as the JSON 'Accept' header. 
 	 */
-	public static JsonNode invokeBioportal ( String servicePath, String apiKey, String... paramValPairs )
+	public static JsonNode invokeBioportal ( final String servicePath, final String apiKey, final String... paramValPairs )
 	{
-		try
-		{
-			URL url = getBioPortalUrl ( servicePath, paramValPairs );
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setRequestMethod ( "GET" );
-			conn.setRequestProperty ( "Authorization", "apikey token=" + apiKey );
-			conn.setRequestProperty ( "Accept", "application/json" );
-			
-			ObjectMapper mapper = new ObjectMapper ();
-			return mapper.readTree ( conn.getInputStream () );
-		}
-		catch ( FileNotFoundException ex )
-		{
-			if ( log.isTraceEnabled () )
-				log.trace ( "FileNotFound from '" + servicePath + "', returning null", ex );
-			else
-				log.debug ( "FileNotFound from '" + servicePath + "', returning null" );
-			return null;
-		}
-		catch ( IOException ex )
-		{
-			throw new OntologyServiceException ( "Error while accessing Bioportal: " + ex.getMessage (), ex );
-		} 
+		final JsonNode[] resultWrapper = new JsonNode [ 1 ];
+		wrapInvoker.run ( new Runnable() {
+			@Override
+			public void run ()
+			{
+				try
+				{
+					URL url = getBioPortalUrl ( servicePath, paramValPairs );
+					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod ( "GET" );
+					conn.setRequestProperty ( "Authorization", "apikey token=" + apiKey );
+					conn.setRequestProperty ( "Accept", "application/json" );
+					
+					ObjectMapper mapper = new ObjectMapper ();
+					resultWrapper [ 0 ] = mapper.readTree ( conn.getInputStream () );
+				}
+				catch ( FileNotFoundException ex )
+				{
+					// This is tricky, since it's not always a real error, e.g., when we try to see if a given class exists
+					// we'll get a file-not-found error, because the HTTP query will be formed with an ID in the path that
+					// doesn't lead to any path considered valid (the class doesn't exist)
+					//
+					if ( log.isTraceEnabled () )
+						log.trace ( "FileNotFound from '" + servicePath + "', returning null", ex );
+					else
+						log.debug ( "FileNotFound from '" + servicePath + "', returning null" );
+					
+					resultWrapper [ 0 ] = null;
+				}
+				catch ( IOException ex )
+				{
+					throw new OntologyServiceException ( "Error while accessing Bioportal: " + ex.getMessage (), ex );
+				} 
+			}
+		});
+		
+		return resultWrapper [ 0 ];
 	}
 }

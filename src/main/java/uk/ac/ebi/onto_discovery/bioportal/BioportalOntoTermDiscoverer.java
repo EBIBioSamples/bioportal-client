@@ -15,9 +15,10 @@ import uk.ac.ebi.bioportal.webservice.client.BioportalClient;
 import uk.ac.ebi.bioportal.webservice.model.OntologyClass;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.ClassRef;
+import uk.ac.ebi.bioportal.webservice.utils.BioportalWebServiceUtils;
 import uk.ac.ebi.onto_discovery.api.OntologyDiscoveryException;
 import uk.ac.ebi.onto_discovery.api.OntologyTermDiscoverer;
-import uk.ac.ebi.utils.time.XStopWatch;
+import uk.ac.ebi.utils.runcontrol.RateLimitedInvoker;
 
 /**
  * Ontology Discoverer based on <a href = 'https://bioportal.bioontology.org/annotator'>Bioportal Annotator</a>.
@@ -32,13 +33,6 @@ public class BioportalOntoTermDiscoverer extends OntologyTermDiscoverer
 	private String preferredOntologies;
 	private boolean fetchLabels = false;
 	private boolean usePreferredOntologiesOnly = false;
-	
-	
-	private long minCallDelay = 0;
-	private int totalCalls = 0, failedCalls = 0;
-	private long statsSamplingTime = 5 * 60 * 1000; 
-		
-	private XStopWatch statsTimer = new XStopWatch ();
 
 	
 	private Logger log = LoggerFactory.getLogger ( this.getClass () );
@@ -62,10 +56,16 @@ public class BioportalOntoTermDiscoverer extends OntologyTermDiscoverer
 	public List<DiscoveredTerm> getOntologyTerms ( String valueLabel, String typeLabel ) throws OntologyDiscoveryException
 	{
 		if ( (valueLabel = StringUtils.trimToNull ( valueLabel )) == null ) return NULL_RESULT;
-
-		if ( this.statsSamplingTime > 0 && statsTimer.isStopped () ) statsTimer.start ();
-		long callStartTime = this.minCallDelay == 0 ? 0 : System.currentTimeMillis ();			
 		
+		List<DiscoveredTerm> result = getOntologyTermsFromBioportal ( valueLabel );
+		// If you fail with the value, try the type instead
+		if ( result != NULL_RESULT || typeLabel == null ) return result;
+		
+		return getOntologyTermsFromBioportal ( typeLabel );
+	}
+	
+	private List<DiscoveredTerm> getOntologyTermsFromBioportal ( String text ) throws OntologyDiscoveryException
+	{
 		try
 		{
 			TextAnnotation[] anns;
@@ -73,14 +73,14 @@ public class BioportalOntoTermDiscoverer extends OntologyTermDiscoverer
 			// First, try with ontologies of interest, if available
 			//
 			if ( preferredOntologies == null )
-				anns = bpclient.getTextAnnotations ( valueLabel, "longest_only", "true" );
+				anns = bpclient.getTextAnnotations ( text, "longest_only", "true" );
 			else
 			{
-				anns = bpclient.getTextAnnotations ( valueLabel, "longest_only", "true", "ontologies", preferredOntologies );
+				anns = bpclient.getTextAnnotations ( text, "longest_only", "true", "ontologies", preferredOntologies );
 
 				// If that didn't yield result, try with the rest too, unless the corresponding option says no
 				if ( anns.length == 0 && !this.usePreferredOntologiesOnly )
-					anns = bpclient.getTextAnnotations ( valueLabel, "longest_only", "true" );
+					anns = bpclient.getTextAnnotations ( text, "longest_only", "true" );
 			}
 			
 			// Collect the results 
@@ -116,71 +116,12 @@ public class BioportalOntoTermDiscoverer extends OntologyTermDiscoverer
 		}
 		catch ( Exception ex )
 		{
-			if ( this.statsSamplingTime > 0 ) this.failedCalls++;
 			log.error ( String.format ( 
-				"Error while invoking Bioportal for '%s':'%s': %s. Returning null", valueLabel, typeLabel, ex.getMessage () 
+				"Error while invoking Bioportal for '%s': %s. Returning null", text, ex.getMessage () 
 			));
 			if ( log.isDebugEnabled () ) log.debug ( "Underline exception is:", ex );
 			return null;
 		}
-		finally 
-		{
-			if ( this.statsSamplingTime > 0 ) this.totalCalls++;
-			doMinCallDelay ( callStartTime );
-			doStats ();
-		}
-	}
-
-	/**
-	 * Delays the call to {@link #getOntologyTerms(String, String)} by the {@link #getMinCallDelay()} time.
-	 */
-	private boolean doMinCallDelay ( long callStartTime )
-	{
-		try 
-		{
-			if ( this.minCallDelay == 0 ) return false;
-			
-			long callTime = System.currentTimeMillis () - callStartTime;
-			long deltaDelay = this.minCallDelay - callTime;
-		
-			if ( deltaDelay <= 0 ) return false;
-			
-			log.trace ( "Sleeping for {} ms, due to minCallDelay of {}", deltaDelay, minCallDelay );
-			Thread.sleep ( deltaDelay );
-			return true;
-		}
-		catch ( InterruptedException e ) {
-			throw new RuntimeException ( "Internal error with Thread.sleep(): " + e.getMessage (), e );
-		}
-	}
-	
-	
-	/**
-	 * Performs Bioportal performance statistics and log them with INFO level. This is invoked after 
-	 * {@link #getOntologyTerms(String, String)} and after {@link #getStatsSamplingTime()} ms.
-	 * 
-	 */
-	private void doStats ()
-	{
-		if ( this.statsSamplingTime <= 0 ) return;
-			
-		synchronized ( statsTimer )
-		{
-			if ( statsTimer.getTime () < statsSamplingTime ) return;
-			
-			long time = statsTimer.getTime ();
-			
-			double failedPercent = this.totalCalls == 0 ? 0d : 100d * this.failedCalls / this.totalCalls;
-			double speed = 60 * 1000d * this.totalCalls / time; 
-
-			log.info ( String.format ( 
-				"---- BioPortal Statistics, throughput: %.0f calls/min, failed: %.1f %%", speed, failedPercent 
-			)); 
-			
-			this.totalCalls = this.failedCalls = 0;
-			statsTimer.restart ();
-		}
-
 	}
 	
 	
@@ -237,34 +178,27 @@ public class BioportalOntoTermDiscoverer extends OntologyTermDiscoverer
 	}
 
 	/**
-	 * <p>Bioportal server doesn't like to be hammered with too many requests, so you can set this to non-zero, to obtain
-	 * that {@link #getOntologyTerms(String, String)} lasts this value at least. Default is 0.</p>
-	 *  
-	 * <p>According to our experience and Bioportal people, the server starts issuing errors like HTTP/429 at speeds &gt; 15
-	 * calls/s per process/JVM. This is 66.67ms and we suggest this limit, if you perform many requests in sequence. 
-	 * You have to further adjust this time, if you work in multi-thread mode.</p>  
+	 * TODO: remove, it's currently ignored, because we use {@link RateLimitedInvoker}.
 	 */
 	public long getMinCallDelay ()
 	{
-		return minCallDelay;
+		return -1;
 	}
 
 	public void setMinCallDelay ( long minCallDelay )
 	{
-		this.minCallDelay = minCallDelay;
 	}
 
 	/**
-	 * Calls {@link #doStats()} every this time, in ms.
+	 * TODO: remove, it's currently ignored, use {@link BioportalWebServiceUtils#STATS_SAMPLING_TIME_PROP_NAME}.
 	 */
 	public long getStatsSamplingTime ()
 	{
-		return statsSamplingTime;
+		return -1;
 	}
 
 	public void setStatsSamplingTime ( long statsSamplingTime )
 	{
-		this.statsSamplingTime = statsSamplingTime;
 	}
 	
 }

@@ -276,6 +276,8 @@ public class BioportalClient
 			}
 			// If not, try with the first ontology class
 			JsonNode jclasses = invokeBioportal ( "/ontologies/" + encodedAcronym + "/classes", this.apiKey, "pagesize", "2" );
+			if ( jclasses == null ) return result;
+			
 			String classUri = jclasses.at ( "/collection/0/@id" ).asText ();
 			if ( classUri == null ) return result;
 			

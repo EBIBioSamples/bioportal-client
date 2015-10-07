@@ -1,0 +1,500 @@
+Universal Human Reference RNA (UHRR) from Stratagene
+IL 271
+Mix of Sample A (UHRR) and Sample B (HBRR) (3:1)
+FC2
+2005-11-11
+Pathogen: environmental/food/other; version 1.0
+ERS198142
+Head Kidney
+Pathogen.env.1.0
+Model organism or animal
+GM19159
+23.7000 N 90.3750 E
+CML Patient: Treated
+healthy donor
+CUTLL1
+male
+K9_2
+Generic
+Leukocyte peripheral blood
+unaffected
+FDA00004687
+Longissimus dorsi muscle
+114_FP_1and2SubA_9_22_10
+Abcam : ab16148
+2010
+2010
+colon adenocarcinoma
+MIMS: metagenome/environmental, wastewater; version 4.0
+Generic
+SAME55970
+renal clear cell carcinoma (primary tumor)
+PBS-ERR??-/- BMDM
+source GSM285462 1
+Beach foreshore exposed surface sand
+SRS451189
+Generic.1.0
+Salmonella enterica
+PA
+freshwater metagenome
+GSM1163028
+N248_1
+MALI_20
+Generic sample from Human gut microbiome
+Generic
+SRS556516
+Homo sapiens
+SRS488067
+Generic
+large decrease in lymphocytes count
+CFSAN018912
+E-MTAB-1770
+batch4_chrom2_LoVo_GATAD1_Rabbit_FailedQC
+SRS487624
+BT3661
+surface
+108 hpf
+5.1
+source 3224_35d_high_polyIC4h
+source 2152_33d_high_control
+large decrease in lymphocytes count
+Homo sapiens
+Homo sapiens
+Clinical
+2007-05-30
+Exome
+Enterococcus faecium
+F54467
+CFSAN004345
+1001
+Generic sample from Arabidopsis thaliana
+NO
+Salmonella enterica
+SAME574658
+induced pluripotent stem cell
+B-Lymphocyte
+cell line
+Homo sapiens
+11625
+mzXML
+179
+Nares
+T3
+Mus musculus
+mouse liver
+group5, control CAR/PXR  h
+24hr
+zymosan
+Homo sapiens
+63119
+source GSM1484864 1
+group4, Phenobarbital CAR/PXR KO
+Adult Liver1
+[Completed]
+Homo sapiens
+mouse liver
+3608
+298F12
+[Completed]
+Homo sapiens
+3013
+MIGS/MIMS/MIMARKS.water
+Generic
+29
+ExAC_v0.1_Sample_60502
+YES
+A
+9 to 11 weeks
+K562 (erythroleukemia)
+Homo sapiens (Human)
+A48D6F44-6174-4B60-9F8C-D25F27AEEE2B
+0
+14706
+Acinetobacter baumannii 44362_4
+4032
+33870
+5008
+group3, control CAR/PXR KO
+4009
+Spring 2010
+2012-5-31
+GSM1370235
+Generic.1.0
+2x10^5 cfu Bordetella pertussis B1917
+Female whole body
+Anopheles gambiae
+group4, Phenobarbital CAR/PXR KO 4002
+female
+GSM1208737
+mouse liver
+Splenic B lymphocytes
+A2B
+pustule
+swab
+Shifts in microbial community composition of Gulf Coast beaches following beach oiling
+Generic
+liver
+6013
+General Sample for Trematomus bernacchii - Brain Tissue Control Group
+Transcriptome
+Generic
+Homo sapiens
+62
+48049
+Homo sapiens
+ExAC_v0.1_Sample_10255
+group1, control wild-type 1017
+freshwater
+Homo sapiens
+Triticum aestivum
+normal colon
+ERS174855
+0.6 cm
+2011
+1803_ST258
+Generic
+Fiona is daughter of Leslie (S005042/S005043) and Lux
+Homo sapiens
+Ignavibacteriaceae bacterium SCGC AC-197-M14
+Mus musculus
+Gene expression data under ER stress from lymphoblastoid cells of individual GM12760 treated with DMSO 8 hours.
+ms_lims
+Human, granzyme M, LC-MSMS
+DAR5842
+T-Cell
+non-POU-domain-containing, octamer binding protein
+Gt (PST30238) Mfgc
+FFPE
+Late-term cervix tissue rep2
+sample 479
+ES Cell
+MGI:1861305
+MIMARKS.survey.water.4.0
+MIMS: metagenome/environmental, soil; version 4.0
+ftp://ftp.pride.ebi.ac.uk/2013/11/PXD000252/L18573_1418_GrzM_kinetics_fr20-24-11.RAW
+Generic.1.0
+IM015_B6_Mock_d4_1
+intestine
+300
+SAMEA175193
+Mus musculus
+IM015_B6_CA04_d2
+Generic sample from Arabidopsis thaliana
+sample 334
+Homo sapiens
+healthy
+GSM1241426
+DMEM
+GM12878_ATACseq_500_Rep1
+Drosophila melanogaster
+enterica
+Generic
+MATa, his3?, leu2?, lys2?, met15?, trp1?::HISG, URA::CMV-tTA; leu1-32::hENT1-leu1+(pJAH29) his7-366::hsv-tk-his7+(pJAH31) ura4-D18 ade6-M210
+MIGS: cultured bacteria/archaea; version 4.0
+SBW1766-sc-2012-07-25T16:03:39Z-1457159
+Normal
+Escherichia coli
+sample 9
+T2
+Tepidibacter formicigenes DSM 15518
+Thaumarchaeota archaeon SCGC AB-663-N18
+Gt (318H07) Cmhd
+Umbilical cord
+Microbe, viral or environmental
+source GSM1009491 1
+source GSM1274235 1
+Generic
+bone marrow DNA PCR amplicon
+65.3
+SRS444938
+Caenorhabditis elegans
+71DB4878-7625-4518-BA58-9ACCA7604199
+Homo sapiens
+source GSM1315325 1
+Salmonella enterica
+H3K4me2
+Blood fed +12h
+Homo sapiens
+A
+GSM1207853
+source GSM1315332 1
+Chinese
+stable renal graft function_???2 months
+SAMEA1575951
+Fusarium graminearum
+SRS488713
+5.4e-06
+.3 cm
+NO
+NO
+SRS448997
+5th
+rrs1-1
+Pathogen.combined.1.0
+source GSM745519 1
+S22
+Complete response
+ICOPHAI10072
+Generic.1.0
+ChIPed chromatin, Active Motif H2Av pAb #39715
+normal
+Generic
+Germ-free 1 (PAMM-077)
+B-CLL
+prostate cancer cells
+LIVING
+Complete response
+pool of 2x25 isofemale lines
+Model organism or animal
+156
+EP155
+43E4D2D5-292E-42BE-A852-7DE030D0777E
+adult
+0
+source GSM745491 1
+Generic
+35
+Pathogen sample from Staphylococcus aureus
+Homo sapiens
+Generic
+08/18/11
+soil metagenome
+Sample from Homo sapiens
+0.62
+no
+YES
+SC
+ovary
+WT
+CA1
+no
+Homo sapiens
+Generic
+SRS449307
+Generic
+RAV115_KEV_A50_10
+source KO1_1
+submandibular salivary gland
+A
+NO
+Homo sapiens
+Homo sapiens
+NO
+7th
+Generic
+42C937FD-83DC-4649-8BF9-162C66607020
+Nosil Lab
+t003
+blood
+Homo sapiens
+WT-16_B
+2
+gut metagenome
+21.467 N 158.103 W
+female
+feces
+legs (muscle)
+Generic
+cells express membrane-bound GFP marker UAS-CD8::GFP (for wild type)
+not collected
+source WT3
+N0
+cell line
+3
+Epstein-Barr Virus
+genomic DNA
+Homo sapiens
+TCGA-FD-A3B5
+Mus musculus
+QF-PF-3
+AUTISTIC DISORDER
+Primary Tumor
+NA19374
+Epstein-Barr Virus
+YES
+MIMS Environmental/Metagenome sample from chicken gut metagenome
+11-Jan-2013
+Homo sapiens
+source GSM1310238 1
+LIDZ129DNAlong2
+YES
+cell line
+peritoneum
+118
+differentiated iPS clone
+metal response element binding transcription factor 2
+batch4_chrom1_LoVo_IgG_Rabbit
+106
+Populus euphratica
+ATCC 17025
+Generic
+environmental/food/other
+Pathogen.env.1.0
+coastal water
+28
+GSM1328844
+source GSM1486174 1
+Generic
+Caenorhabditis elegans
+Generic sample from Zea mays
+SRS445095
+80.55
+Generic
+mzXML
+source GSM1076099 1
+[Completed]
+NO
+Generic
+control siRNA pool
+Homo sapiens
+Korea, Chungchong Puk
+MMP Strain VC40803 (S189-AT-118)
+[Completed]
+Nonsporulating
+404126
+Pathogen.cl
+Mycobacterium tuberculosis hlj100176
+Generic
+Generic
+Autism
+[Completed]
+male
+TCGA-77-8136
+Generic
+DNA
+A1A3
+C16.2
+3.1 cm
+B-Lymphocyte
+FFPE
+soil metagenome AND_B10_10
+2d7bb49e-f56b-4d14-b372-f18ee431d5f9
+cell line
+GSM1163678
+product-eggs-raw-yolks
+Pathogen.combined.1.0
+MIMS.me
+33.8319 N 96.5711 W
+SRS1039634
+24
+Pathogen: clinical or host-associated sample from Cryptococcus gattii
+Arabidopsis thaliana
+3
+whole organism
+BXD13
+2.5 cm long root samples were harvested 1 mm above the root tip. Total RNA was extracted using the Qiagen RNeasy Plant mini kit (Qiagen, Hilden, Germany). RNA quality was assessed using the Agilent 2100 BioAnalyzer technology (Agilent technologies, Santa Clara, USA).
+Generic
+Late-log phase culture
+7613_1
+Apis mellifera
+Saccharomyces cerevisiae S288c
+leu1-32::hENT1-leu1+(pJAH29) his7-366::hsv-tk-his7+(pJAH31) ura4-D18 ade6-M210
+Saccharomyces cerevisiae S288c
+Homo Sapien
+pathogen.cl
+pre-2008
+Mycobacterium tuberculosis
+19.006 N 41.104 E
+environmental/food/other
+SRS1014689
+ERS540381
+Plant
+Mt_DMI3_MYCNS_10-6M_2H+4H_R3
+male
+Streptococcus pyogenes
+Intact
+source 5day_5
+2012-03-15
+200
+FDA
+2010-02-17
+female
+Generic
+not_checked
+26
+Saccharomyces cerevisiae
+FDA00004964
+Generic
+20
+7.67
+source Hs_F83
+Generic.1.0
+invasive ductal carcinoma
+Homo sapiens
+ftp://ftp.ebi.ac.uk/pub/databases/biosamples/ae/GAE-GEOD-49125/sampletab.txt
+Campylobacter
+Campylobacter
+23.50 S 70.25 W
+seafood comsumption associated diarrhea
+Homo sapiens
+ERS236068
+QH55
+Ambient
+colon adenocarcinoma
+SRS634165
+Arabidopsis thaliana Tsu-0 root, biological replicate 1
+SRS1039447
+SRS1039548
+aerial parts of 3-week old plants
+Generic
+SP417E-Alc
+Generic.1.0
+Amyotrophic lateral sclerosis 1
+Salmonella enterica
+SRS855389
+SC_MFY5287937-sc-2012-02-02T14:10:57Z-1349357
+enterica
+SRS488152
+female
+NA07903
+MET1101LYS
+GM08035
+Generic
+45.083333 N 133.947194 E
+SAME43084
+Generic
+primary CD4+ T cells from spleen and lymph nodes
+113
+4
+ND13425
+CNRVC960254
+environmental/food/other
+Pathogen.combined.1.0
+source GSM487859 1
+SAME16083
+ATCC:30222
+Homo sapiens
+wild type
+FDA00001882
+environmental/food/other
+18.52565 N 72.554197 W
+Pathogen.combined.1.0
+FDA00004419
+oxic
+A1EH
+Homo sapiens
+MKK
+primary solid tumor
+SRS710717
+MIGS.ba
+GSM1163085
+SRS892265
+[Completed]
+LWK
+Human; version 1.0
+Klebsiella pneumoniae subsp. pneumoniae
+Microbe sample from Staphylococcus aureus
+Input_hns-F_bcm+2
+bacteria_archaea
+13
+SRS549067
+fresh_sample
+Homo sapiens
+Generic
+PRIM_ERN
+mammary gland
+Kandleria vitulina MC3001
+SAME552357
+562
+59
+batch1_chrom1_LoVo_MEF2C_Rabbit_PassedQC

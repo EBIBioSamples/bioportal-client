@@ -6,14 +6,24 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Set;
 
-import junit.framework.Assert;
-
+import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.code.tempusfugit.concurrency.ConcurrentRule;
+import com.google.code.tempusfugit.concurrency.annotations.Concurrent;
+
+import uk.ac.ebi.bioportal.webservice.exceptions.OntologyServiceException;
 import uk.ac.ebi.bioportal.webservice.model.Ontology;
 import uk.ac.ebi.bioportal.webservice.model.OntologyClass;
+import uk.ac.ebi.utils.io.IOUtils;
 
 /**
  * Tests the functions in {@link BioportalClient}. Note that this uses our API-Key, please do not reuse it and
@@ -32,6 +42,12 @@ public class BioportalClientTest
 	public static final String API_KEY = "07732278-7854-4c4f-8af1-7a80a1ffc1bb";
 
 	private static BioportalClient bpcli = new BioportalClient ( API_KEY );
+	
+	Logger log = LoggerFactory.getLogger ( this.getClass () );
+	
+	@Rule
+	public ConcurrentRule concurrentRule = new ConcurrentRule ();
+
 	
 	@Test
 	public void testGetOntology ()
@@ -126,4 +142,28 @@ public class BioportalClientTest
 		assertFalse ( "Ancestor found!", unexpectedTargetFound );
 	}
 
+	
+	@Test
+	@Ignore ( "Not a real test, used to manually check performance issues" )
+	@Concurrent ( count = 20 )
+	public void testThroughput () throws IOException
+	{
+		String[] words = StringUtils.split ( IOUtils.readResource ( this.getClass (), "/text_ann_test_terms.txt" ), "\n" );
+		int n = 50, fails = 0;
+		for ( int i = 1; i <= n; i++ )
+		{
+			try
+			{
+				int iw = RandomUtils.nextInt ( 0, words.length );
+				bpcli.getTextAnnotations ( words [ iw ], "longest_only", "true" );
+				if ( i % ( n / 4 ) == 0 ) log.info ( "{} % completed", 100d * i / n );
+			}
+			catch ( OntologyServiceException ex ) 
+			{
+				fails++;
+				log.info ( "Failure: {}", ex.getMessage () );
+			}
+		}
+		log.info ( "The end, fails: {} %", 100d * fails / n );
+	}
 }
