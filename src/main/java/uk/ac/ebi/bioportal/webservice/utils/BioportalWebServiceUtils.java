@@ -15,10 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.bioportal.webservice.exceptions.OntologyServiceException;
 import uk.ac.ebi.bioportal.webservice.model.OntologyClass;
-import uk.ac.ebi.utils.runcontrol.ChainedWrappedInvoker;
-import uk.ac.ebi.utils.runcontrol.RateLimitedInvoker;
-import uk.ac.ebi.utils.runcontrol.StatsInvoker;
-import uk.ac.ebi.utils.runcontrol.WrappedInvoker;
+import uk.ac.ebi.utils.runcontrol.ChainExecutor;
+import uk.ac.ebi.utils.runcontrol.RateLimitedExecutor;
+import uk.ac.ebi.utils.runcontrol.StatsExecutor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,8 +44,8 @@ public class BioportalWebServiceUtils
 	/**
 	 * We provide these, in case you want to tweak their parameters. 
 	 */
-	public static final RateLimitedInvoker RATE_LIMITING_WRAPPER = new RateLimitedInvoker ( 15 );
-	public static final StatsInvoker STATS_WRAPPER = new StatsInvoker ( 
+	public static final RateLimitedExecutor RATE_LIMITING_WRAPPER = new RateLimitedExecutor ( 15 );
+	public static final StatsExecutor STATS_WRAPPER = new StatsExecutor ( 
 		"BioPortal", Long.parseLong ( System.getProperty ( STATS_SAMPLING_TIME_PROP_NAME, "" + 5 * 60 * 1000 ) ) 
 	);
 		
@@ -55,11 +54,11 @@ public class BioportalWebServiceUtils
 
 	/**
 	 * This is used in {@link #invokeBioportal(String, String, String...)}, We have wrap that call with
-	 * both a {@link RateLimitedInvoker rate limit wrapper} and a {@link StatsInvoker statistical reporter}.  
+	 * both a {@link RateLimitedExecutor rate limit wrapper} and a {@link StatsExecutor statistical reporter}.  
 	 * The former is needed because Bioportal's server doesn't like to be hammered at speeds higher than 
 	 * 15 calls/sec per process.
 	 */
-	private static WrappedInvoker<Boolean> wrapInvoker = new ChainedWrappedInvoker<Boolean> (
+	private static ChainExecutor wrapExecutor = new ChainExecutor (
 		RATE_LIMITING_WRAPPER,
 		  STATS_WRAPPER
 	);  
@@ -183,7 +182,7 @@ public class BioportalWebServiceUtils
 	public static JsonNode invokeBioportal ( final String servicePath, final String apiKey, final String... paramValPairs )
 	{
 		final JsonNode[] resultWrapper = new JsonNode [ 1 ];
-		wrapInvoker.run ( new Runnable() {
+		wrapExecutor.execute ( new Runnable() {
 			@Override
 			public void run ()
 			{
