@@ -18,7 +18,7 @@ import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.ClassRef;
 import uk.ac.ebi.bioportal.webservice.utils.BioportalWebServiceUtils;
 import uk.ac.ebi.onto_discovery.api.OntologyDiscoveryException;
 import uk.ac.ebi.onto_discovery.api.OntologyTermDiscoverer;
-import uk.ac.ebi.utils.runcontrol.RateLimitedInvoker;
+import uk.ac.ebi.utils.runcontrol.RateLimitedExecutor;
 
 /**
  * Ontology Discoverer based on <a href = 'https://bioportal.bioontology.org/annotator'>Bioportal Annotator</a>.
@@ -178,7 +178,7 @@ public class BioportalOntoTermDiscoverer extends OntologyTermDiscoverer
 	}
 
 	/**
-	 * TODO: remove, it's currently ignored, because we use {@link RateLimitedInvoker}.
+	 * TODO: remove, it's currently ignored, because we use {@link RateLimitedExecutor}.
 	 */
 	public long getMinCallDelay ()
 	{
