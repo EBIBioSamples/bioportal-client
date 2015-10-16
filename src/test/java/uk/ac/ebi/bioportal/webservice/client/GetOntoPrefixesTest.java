@@ -1,5 +1,6 @@
 package uk.ac.ebi.bioportal.webservice.client;
 
+import static uk.ac.ebi.bioportal.webservice.client.BioportalClientTest.API_KEY;
 import static uk.ac.ebi.bioportal.webservice.utils.BioportalWebServiceUtils.invokeBioportal;
 
 import org.apache.commons.lang3.StringUtils;
@@ -9,8 +10,6 @@ import org.junit.Test;
 import uk.ac.ebi.bioportal.webservice.exceptions.OntologyServiceException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
-import static uk.ac.ebi.bioportal.webservice.client.BioportalClientTest.API_KEY;
 
 /**
  * For each ontology in Biportal, tries to compute the URL prefix that is used to build the URIs of the classes

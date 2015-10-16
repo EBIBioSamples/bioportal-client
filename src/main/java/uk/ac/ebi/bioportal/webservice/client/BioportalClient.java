@@ -11,18 +11,19 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import uk.ac.ebi.bioportal.webservice.exceptions.OntologyServiceException;
 import uk.ac.ebi.bioportal.webservice.model.Ontology;
 import uk.ac.ebi.bioportal.webservice.model.OntologyClass;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation;
+import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.Annotation;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.ClassRef;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.HierarchyEntry;
-import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.Annotation;
 import uk.ac.ebi.bioportal.webservice.utils.BioportalWebServiceUtils;
-import uk.ac.ebi.utils.memory.SimpleCache;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.cache.CacheBuilder;
 
 /**
  * A simple client to access the REST API of Bioportal APIs.
@@ -36,6 +37,12 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public class BioportalClient
 {	
+	/**
+	 * Items cached from the web service expires after this amount of mins has passed after the first download
+	 * Default is 4h
+	 */
+	public static final String CACHE_TIMEOUT_MINS_PROP_NAME = "uk.ac.ebi.bioportal.cache_timeout";
+	
 	/**
 	 * With the adoption of OWL/RDF, it has become hard to know which URI prefixes the ontologies use to build their
 	 * own classes, in several cases, where the ontology uses multiple namespaces, this doesn't even make sense.
@@ -75,13 +82,22 @@ public class BioportalClient
 	}};
 	
 	protected final String apiKey; 
-	private SimpleCache<String, OntologyClass> classCache = new SimpleCache<> ( 300000 );
-	private SimpleCache<String, Ontology> ontologyCache = new SimpleCache<> ( 300000 );
+	private Map<String, OntologyClass> classCache;
+	private Map<String, Ontology> ontologyCache;
 
 	
+	@SuppressWarnings ( { "rawtypes", "unchecked" } )
 	public BioportalClient ( String bioportalApiKey )
 	{
-		super ();
+		long ttl = Long.valueOf ( System.getProperty ( CACHE_TIMEOUT_MINS_PROP_NAME, "" + 60 * 4 ) ); 
+		
+		CacheBuilder cacheBuilder = CacheBuilder.newBuilder ()
+			.maximumSize ( 300000 )
+			.expireAfterWrite ( ttl, TimeUnit.MINUTES );
+
+		classCache = cacheBuilder.build ().asMap ();
+		ontologyCache = cacheBuilder.build ().asMap ();
+		
 		this.apiKey = bioportalApiKey;
 	}
 
