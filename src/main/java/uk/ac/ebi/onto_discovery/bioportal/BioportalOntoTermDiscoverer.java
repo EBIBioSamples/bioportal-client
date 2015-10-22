@@ -15,10 +15,8 @@ import uk.ac.ebi.bioportal.webservice.client.BioportalClient;
 import uk.ac.ebi.bioportal.webservice.model.OntologyClass;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.ClassRef;
-import uk.ac.ebi.bioportal.webservice.utils.BioportalWebServiceUtils;
 import uk.ac.ebi.onto_discovery.api.OntologyDiscoveryException;
 import uk.ac.ebi.onto_discovery.api.OntologyTermDiscoverer;
-import uk.ac.ebi.utils.runcontrol.RateLimitedExecutor;
 
 /**
  * Ontology Discoverer based on <a href = 'https://bioportal.bioontology.org/annotator'>Bioportal Annotator</a>.
@@ -176,29 +174,4 @@ public class BioportalOntoTermDiscoverer extends OntologyTermDiscoverer
 	{
 		this.fetchLabels = fetchLabels;
 	}
-
-	/**
-	 * TODO: remove, it's currently ignored, because we use {@link RateLimitedExecutor}.
-	 */
-	public long getMinCallDelay ()
-	{
-		return -1;
-	}
-
-	public void setMinCallDelay ( long minCallDelay )
-	{
-	}
-
-	/**
-	 * TODO: remove, it's currently ignored, use {@link BioportalWebServiceUtils#STATS_SAMPLING_TIME_PROP_NAME}.
-	 */
-	public long getStatsSamplingTime ()
-	{
-		return -1;
-	}
-
-	public void setStatsSamplingTime ( long statsSamplingTime )
-	{
-	}
-	
 }
