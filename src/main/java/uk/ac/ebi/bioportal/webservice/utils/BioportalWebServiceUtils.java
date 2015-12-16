@@ -189,6 +189,8 @@ public class BioportalWebServiceUtils
 				try
 				{
 					URL url = getBioPortalUrl ( servicePath, paramValPairs );
+					log.trace ( "Invoking Bioportal REST with: \"{}\"", url );
+					
 					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod ( "GET" );
 					conn.setRequestProperty ( "Authorization", "apikey token=" + apiKey );

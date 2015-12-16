@@ -56,7 +56,6 @@ public class BioportalClientTest
 		assertEquals ( "Bad name!", "Experimental Factor Ontology", efo.getName () );
 		assertEquals ( "Bad uriPrefix!", "http://www.ebi.ac.uk/efo/", efo.getClassUriPrefix () );
 
-		// http://purl.obolibrary.org/obo/
 		Ontology go = bpcli.getOntology ( "go" );
 		assertEquals ( "Bad name!", "Gene Ontology", go.getName () );
 		assertEquals ( "Bad uriPrefix!", "http://purl.obolibrary.org/obo/", go.getClassUriPrefix () );

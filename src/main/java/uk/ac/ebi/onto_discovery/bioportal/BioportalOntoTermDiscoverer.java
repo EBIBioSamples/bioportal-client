@@ -106,7 +106,7 @@ public class BioportalOntoTermDiscoverer extends OntologyTermDiscoverer
 					classLabel = ontoClass.getPreferredLabel ();
 				}
 				
-				result.add ( new DiscoveredTerm ( classIri, (Double) null, classLabel ) );
+				result.add ( new DiscoveredTerm ( classIri, (Double) null, classLabel, "Bioportal Annotator" ) );
 			}
 			
 			if ( result.size () == 0 ) return NULL_RESULT;
