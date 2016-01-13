@@ -8,17 +8,23 @@ import static uk.ac.ebi.bioportal.webservice.utils.BioportalWebServiceUtils.invo
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
+
 import uk.ac.ebi.bioportal.webservice.exceptions.OntologyServiceException;
+import uk.ac.ebi.bioportal.webservice.model.ClassRef;
 import uk.ac.ebi.bioportal.webservice.model.Ontology;
 import uk.ac.ebi.bioportal.webservice.model.OntologyClass;
+import uk.ac.ebi.bioportal.webservice.model.OntologyClassMapping;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.Annotation;
-import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.ClassRef;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.HierarchyEntry;
 import uk.ac.ebi.bioportal.webservice.utils.BioportalWebServiceUtils;
 
@@ -29,7 +35,9 @@ import com.google.common.cache.CacheBuilder;
  * A simple client to access the REST API of Bioportal APIs.
  * Note that every instance of this class caches all the ontologies it fetches via {@link #getOntology(String)}.
  * 
- * All the HTTP calls in this class are based on {@link BioportalWebServiceUtils#bioportalBaseUrl}.  
+ * All the HTTP calls in this class are based on {@link BioportalWebServiceUtils#bioportalBaseUrl}.
+ * 
+ * TODO: it's getting too big, split into components.
  *
  * <dl><dt>date</dt><dd>30 Sep 2014</dd></dl>
  * @author Marco Brandizi
@@ -84,7 +92,7 @@ public class BioportalClient
 	protected final String apiKey; 
 	private Map<String, OntologyClass> classCache;
 	private Map<String, Ontology> ontologyCache;
-
+	private Map<String, List<OntologyClassMapping>> classMappingsCache;
 	
 	@SuppressWarnings ( { "rawtypes", "unchecked" } )
 	public BioportalClient ( String bioportalApiKey )
@@ -97,6 +105,7 @@ public class BioportalClient
 
 		classCache = cacheBuilder.build ().asMap ();
 		ontologyCache = cacheBuilder.build ().asMap ();
+		classMappingsCache = cacheBuilder.build ().asMap ();
 		
 		this.apiKey = bioportalApiKey;
 	}
@@ -398,4 +407,95 @@ public class BioportalClient
 		
 		return result;
 	}
+	
+	
+	public List<OntologyClassMapping> getOntologyClassMappings ( OntologyClass ontoClass )
+	{
+		try
+		{
+			String clsIri = ontoClass.getIri ();
+			List<OntologyClassMapping> result = this.classMappingsCache.get ( clsIri );
+			if ( result != null ) return result.isEmpty () ? null : result;
+ 			
+			String ontoId = ontoClass.getOntologyAcronym ().toUpperCase ();
+			String servicePath = 
+				"/ontologies/" + ontoId  
+			  + "/classes/" + URLEncoder.encode ( ontoClass.getIri (), "UTF-8" ) 
+			  + "/mappings";
+			
+			JsonNode jsmaps = invokeBioportal ( servicePath, this.apiKey );
+			
+			// Shouldn't happen, but just in case
+			if ( jsmaps == null  )
+			{
+				result = Collections.emptyList ();
+				this.classMappingsCache.put ( clsIri, result );
+				return null;
+			}
+			
+			// Every item in the JSON result contains data on the source of mapping, plus two class IRIs, the first is always
+			// the input class (in this case), and the second is the meat we're interested in
+			//
+			result = new ArrayList<OntologyClassMapping> ();
+			
+			for ( JsonNode jsmap: jsmaps )
+			{
+				OntologyClassMapping map = new OntologyClassMapping ();
+				
+				map.setId ( jsmap.get ( "id" ).asText () );
+				map.setSource ( jsmap.get ( "source" ).asText () );
+				map.setProcess ( jsmap.get ( "process" ).asText () );
+				
+				JsonNode jsTargetClass = jsmap.get ( "classes" ).get ( 1 );
+
+				String ontoUri = jsTargetClass.get ( "links" ).get ( "ontology" ).asText ();
+				String ontoAcronym = ontoUri.substring ( "http://data.bioontology.org/ontologies/".length () );
+
+				map.setTargetClassRef ( new ClassRef ( 
+					jsTargetClass.get ( "@id" ).asText (),
+					ontoAcronym
+				));
+				result.add ( map );
+			}
+		
+			// Too slow to do it again...
+			// Possibly empty results are saved to tell the cache we've already tried, null is always returned 
+			// for them.
+			this.classMappingsCache.put ( clsIri, result );
+		
+			return result.isEmpty () ? null : result;
+		}
+		catch ( UnsupportedEncodingException ex )
+		{
+			throw new OntologyServiceException ( String.format ( 
+				"Error while trying to get mappings from %s: %s", ontoClass.getIri (), ex.getMessage () ),
+				ex
+			);
+		}
+	}
+	
+	public List<OntologyClassMapping> getOntologyClassMappings ( 
+		OntologyClass ontoClass, String preferredOntologies, boolean usePreferredOntologiesOnly 
+	)
+	{
+		List<OntologyClassMapping> maps = this.getOntologyClassMappings ( ontoClass );
+		if ( maps == null ) return null;
+		
+		preferredOntologies = StringUtils.trimToNull ( preferredOntologies );
+		if ( preferredOntologies == null ) return maps;
+		
+		// So, we must check preferred ones from now on
+		List<OntologyClassMapping> filteredMaps = new ArrayList<OntologyClassMapping> ();
+		for ( OntologyClassMapping map: maps )
+		{
+			ClassRef clsRef = map.getTargetClassRef ();
+			String ontoAcronym = clsRef.getOntologyAcronym ();
+			if ( preferredOntologies.contains ( ontoAcronym  ) ) 
+				filteredMaps.add ( map );
+		}
+		
+		if ( filteredMaps.isEmpty () ) return usePreferredOntologiesOnly ? null : maps;
+		return filteredMaps;
+	}
+	
 }

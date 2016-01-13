@@ -12,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.bioportal.webservice.client.BioportalClient;
+import uk.ac.ebi.bioportal.webservice.model.ClassRef;
 import uk.ac.ebi.bioportal.webservice.model.OntologyClass;
 import uk.ac.ebi.bioportal.webservice.model.TextAnnotation;
-import uk.ac.ebi.bioportal.webservice.model.TextAnnotation.ClassRef;
 import uk.ac.ebi.onto_discovery.api.OntologyDiscoveryException;
 import uk.ac.ebi.onto_discovery.api.OntologyTermDiscoverer;
 
@@ -76,7 +76,7 @@ public class BioportalOntoTermDiscoverer extends OntologyTermDiscoverer
 			{
 				anns = bpclient.getTextAnnotations ( text, "longest_only", "true", "ontologies", preferredOntologies );
 
-				// If that didn't yield result, try with the rest too, unless the corresponding option says no
+				// If that didn't yield a result, try with the rest too, unless the corresponding option says no
 				if ( anns.length == 0 && !this.usePreferredOntologiesOnly )
 					anns = bpclient.getTextAnnotations ( text, "longest_only", "true" );
 			}
