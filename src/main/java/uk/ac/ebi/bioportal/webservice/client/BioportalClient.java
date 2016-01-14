@@ -408,7 +408,11 @@ public class BioportalClient
 		return result;
 	}
 	
-	
+	/**
+	 * Wrapper with no preferred ontologies.
+	 * 
+	 * This is the method that contains the API invocation (the other just filters out the results).
+	 */
 	public List<OntologyClassMapping> getOntologyClassMappings ( OntologyClass ontoClass )
 	{
 		try
@@ -474,6 +478,18 @@ public class BioportalClient
 		}
 	}
 	
+	/**
+	 * Invokes the <a href = 'http://data.bioontology.org/documentation#Mapping'>mapping service</a>, telling the 
+	 * ontology terms that are associated to the input.
+	 * 
+	 * @param ontoClass the input class, which of URI and IRI acronym is passed to the mapping REST URL.
+	 * @param preferredOntologies a comma-separated list of ontology acronyms, as they're acknowledged by Bioportal. Results
+	 * will be filtered using this parameter, if non null 
+	 * @param usePreferredOntologiesOnly if this is true and no result falls within preferredOntologies, non-matching
+	 * result is returned anyways, else the filtered one only is returned.
+	 * 
+	 * @return a list of {@link OntologyClassMapping}, or null if no mapping was found.
+	 */
 	public List<OntologyClassMapping> getOntologyClassMappings ( 
 		OntologyClass ontoClass, String preferredOntologies, boolean usePreferredOntologiesOnly 
 	)

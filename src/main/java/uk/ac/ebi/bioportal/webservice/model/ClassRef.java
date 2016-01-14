@@ -1,7 +1,8 @@
 package uk.ac.ebi.bioportal.webservice.model;
 
 /**
- * TODO: comment me!
+ * Essentially, this is a URI (or accession) plus an acronym, which is the way Bioportal get ontology class references
+ * when needed.
  *
  * @author brandizi
  * <dl><dt>Date:</dt><dd>13 Jan 2016</dd></dl>

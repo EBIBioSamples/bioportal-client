@@ -1,7 +1,8 @@
 package uk.ac.ebi.bioportal.webservice.model;
 
 /**
- * TODO: comment me!
+ * This reflects the results returned by the 
+ * <a href = 'http://data.bioontology.org/documentation#Mapping'>mapping service</a>.
  *
  * @author brandizi
  * <dl><dt>Date:</dt><dd>13 Jan 2016</dd></dl>
@@ -58,6 +59,10 @@ public class OntologyClassMapping
 		this.process = process;
 	}
 
+	/**
+	 * The mapping API returns a pair of classes for each mapping, but the first is always the input class, so we
+	 * can just omit it.
+	 */
 	public ClassRef getTargetClassRef ()
 	{
 		return targetClassRef;
