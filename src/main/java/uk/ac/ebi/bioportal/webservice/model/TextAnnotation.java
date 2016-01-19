@@ -71,7 +71,7 @@ public class TextAnnotation
 			return String.format ( 
 				"%s { text: '%s' from: %d, to: %d, matchType: '%s' }", 
 				this.getClass ().getSimpleName (), this.getText (), this.getFrom (), this.getTo (), 
-				this.getText (), this.getMatchType ()
+				this.getMatchType ()
 			);
 		}
 		

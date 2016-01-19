@@ -133,7 +133,7 @@ public class BioportalClient
 	@SuppressWarnings ( { "rawtypes", "unchecked" } )
 	public BioportalClient ( String bioportalApiKey )
 	{
-		long ttl = Long.valueOf ( System.getProperty ( CACHE_TIMEOUT_MINS_PROP_NAME, "" + 60 * 4 ) ); 
+		long ttl = Long.parseLong ( System.getProperty ( CACHE_TIMEOUT_MINS_PROP_NAME, "" + 60 * 4 ) ); 
 		
 		CacheBuilder cacheBuilder = CacheBuilder.newBuilder ()
 			.maximumSize ( 300000 )
@@ -159,6 +159,10 @@ public class BioportalClient
 	{
 		try
 		{
+			if ( accession == null ) throw new IllegalArgumentException (
+				"Cannot query Bioportal without term accession/URI" 
+			);
+			
 			String classUri = null;
 			if ( accession.startsWith ( "http://" ) || accession.startsWith ( "https://" ) )
 			{
