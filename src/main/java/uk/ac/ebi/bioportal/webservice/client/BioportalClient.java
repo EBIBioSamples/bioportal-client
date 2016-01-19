@@ -17,6 +17,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.bioportal.webservice.exceptions.OntologyServiceException;
 import uk.ac.ebi.bioportal.webservice.model.ClassRef;
@@ -84,15 +86,49 @@ public class BioportalClient
 		put ( "NCBITAXON", "http://purl.bioontology.org/ontology/NCBITAXON/" );
 		put ( "UO", "http://purl.obolibrary.org/obo/" );
 		put ( "UBERON", "http://purl.obolibrary.org/obo/" );
+		put ( "MA", "http://purl.obolibrary.org/obo/" );
 		put ( "IAO", "http://purl.obolibrary.org/obo/" );
 		put ( "OBI", "http://purl.obolibrary.org/obo/" );
 		put ( "BFO", "http://purl.obolibrary.org/obo/" );
+		put ( "GO", "http://purl.obolibrary.org/obo/" );
+		put ( "HP", "http://purl.obolibrary.org/obo/" );
+		put ( "PO", "http://purl.obolibrary.org/obo/" );
+		put ( "BTO", "http://purl.obolibrary.org/obo/" );
+		put ( "CL", "http://purl.obolibrary.org/obo/" );
+		put ( "CLO", "http://purl.obolibrary.org/obo/" );
+		put ( "NCBITaxon", "http://purl.obolibrary.org/obo/" );
+		put ( "IDO", "http://purl.obolibrary.org/obo/" );
+		put ( "CHEBI", "http://purl.obolibrary.org/obo/" );
+		put ( "ORDO", "http://www.orpha.net/ORDO/" );
+		put ( "OMIM", "http://omim.org/entry/" );
+		put ( "MESH", "http://purl.bioontology.org/ontology/MESH/" );
+		put ( "LNC", "http://purl.bioontology.org/ontology/LNC/" );
 	}};
+	
+	private final static Map<String, String> uri2OntologyMap = new HashMap<> ();
+	
 	
 	protected final String apiKey; 
 	private Map<String, OntologyClass> classCache;
 	private Map<String, Ontology> ontologyCache;
-	private Map<String, List<OntologyClassMapping>> classMappingsCache;
+	private Map<String, List<OntologyClassMapping>> classMappingsCache;	
+	
+	private Logger log = LoggerFactory.getLogger ( this.getClass () );
+	
+	static
+	{
+		for ( String ontoId: KNOWN_ONTOLOGY_CLASS_URI_PREFIXES.keySet () )
+		{
+			String uriPrefix = KNOWN_ONTOLOGY_CLASS_URI_PREFIXES.get ( ontoId );
+			if ( "http://purl.obolibrary.org/obo/".equals ( uriPrefix ) )
+				// This needs a different strategy
+				uri2OntologyMap.put ( "http://purl.obolibrary.org/obo/" + ontoId + "_", ontoId );
+			else
+				uri2OntologyMap.put ( uriPrefix, ontoId );
+		}
+	}
+	
+	
 	
 	@SuppressWarnings ( { "rawtypes", "unchecked" } )
 	public BioportalClient ( String bioportalApiKey )
@@ -115,24 +151,69 @@ public class BioportalClient
 	 * This is internally cached and a new cache is created upon every new instance of this class.
 	 *  
 	 * @param accession might be either an accession like EFO_0000001, or a full URI (starting with http://)
+	 * @param ontologyAcronym the Bioportal ontology acronym where the term is defined. If this is null and the accession
+	 * is a URI, we attempt to get the acronym from kwnon ontologies and the class URI, but it doesn't always work, sorry,
+	 * that's a limit of Bioportal and other lookup services.
 	 */
 	public OntologyClass getOntologyClass ( String ontologyAcronym, String accession )
 	{
 		try
 		{
 			String classUri = null;
-			if ( accession.startsWith ( "http://" ) )
+			if ( accession.startsWith ( "http://" ) || accession.startsWith ( "https://" ) )
+			{
 				classUri = accession;
+				if ( ontologyAcronym == null )
+				{
+					// We try to resolve unspecified acronym by means of some heuristics, and using known ontologies.
+					// The degree of success varies and it's outrageous that look services demand this parameter, which
+					// doesn't even make sense.
+					//
+					int brkIdx = -1; 
+					
+					if ( classUri.startsWith ( "http://purl.obolibrary.org/obo/" ) ) brkIdx = classUri.lastIndexOf ( '_' );
+					if ( brkIdx == -1 )	brkIdx = classUri.lastIndexOf ( '#' );
+					if ( brkIdx == -1 )	brkIdx = classUri.lastIndexOf ( '/' );
+					if ( brkIdx != -1 )
+					{
+						ontologyAcronym = uri2OntologyMap.get ( classUri.substring ( 0, brkIdx + 1 ) );
+						if ( ontologyAcronym == null )
+						{
+							log.debug ( 
+								"Cannot get class details for <{}>, unless you specify the defining ontology, returning null",
+								classUri
+							);
+							return null;
+						}
+					} // brkIdx
+				} // ontologyAcronym
+				
+				if ( "OMIM".equals ( ontologyAcronym ) )
+				{
+					// Special case, it wants the final code, not the URI
+					String ontoPrefx = KNOWN_ONTOLOGY_CLASS_URI_PREFIXES.get ( ontologyAcronym );
+					if ( classUri.startsWith ( ontoPrefx ) )
+						classUri = classUri.substring ( ontoPrefx.length () );
+				}
+			} 
 			else
 			{
-				Ontology onto = getOntology ( ontologyAcronym );
-				if ( onto == null ) return null;
-				
-				String ontoUriPrefix = onto.getClassUriPrefix ();
-				if ( ontoUriPrefix == null ) return null;
+				// accession is not a URI
 
-				classUri = ontoUriPrefix + accession;
+				// Special case, doesn't work with the URI
+				if ( !"OMIM".equals ( ontologyAcronym ) )
+				{
+					String ontoUriPrefix = null;
+					Ontology onto = getOntology ( ontologyAcronym );
+					if ( onto == null ) return null;
+				
+					ontoUriPrefix = onto.getClassUriPrefix ();
+					if ( ontoUriPrefix == null ) return null;
+
+					classUri = ontoUriPrefix + accession;
+				}
 			}
+			
 			
 			synchronized ( classUri.intern () )
 			{
@@ -269,7 +350,7 @@ public class BioportalClient
 	{
 		try
 		{
-			acronym = acronym.toUpperCase ();
+			if ( !"NCBITaxon".equals ( acronym ) ) acronym = acronym.toUpperCase ();
 			String encodedAcronym = encode ( acronym, "UTF-8" );
 			Ontology result;
 			

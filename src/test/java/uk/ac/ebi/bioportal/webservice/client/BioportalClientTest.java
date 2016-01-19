@@ -79,6 +79,22 @@ public class BioportalClientTest
 	
 		assertNull ( "Should return null term!", bpcli.getOntologyClass ( "RUBBISH123", "FOO-456" ) );
 		assertNull ( "Should return null term!", bpcli.getOntologyClass ( "EFO", "BAD-ACC" ) );
+
+		// Use a URI, without ontology acronym, this works only for some known ontologies
+		OntologyClass nullOntoClass = bpcli.getOntologyClass ( null, "http://www.ebi.ac.uk/efo/EFO_0000571" );
+		assertNotNull ( "Null result for URI-only query!", nullOntoClass );
+		log.info ( "Result for URI-only query: {}", nullOntoClass );
+		assertEquals ( "URI-only query returns wrong ontology!", "EFO", nullOntoClass.getOntologyAcronym () );
+		
+		nullOntoClass = bpcli.getOntologyClass ( null, "http://purl.obolibrary.org/obo/OBI_0001274" );
+		assertNotNull ( "Null result for URI-only query!", nullOntoClass );
+		log.info ( "Result for URI-only query: {}", nullOntoClass );
+		assertEquals ( "URI-only query returns wrong ontology!", "OBI", nullOntoClass.getOntologyAcronym () );
+		
+		// This is a special case
+		OntologyClass omimClass = bpcli.getOntologyClass ( null, "http://omim.org/entry/233420" );
+		assertNotNull ( "OMIM term not found!", omimClass );
+		log.info ( "Result for OMIM: {}", omimClass );
 	}
 	
 	@Test
