@@ -186,9 +186,10 @@ public class BioportalWebServiceUtils
 			@Override
 			public void run ()
 			{
+				URL url = null;
 				try
 				{
-					URL url = getBioPortalUrl ( servicePath, paramValPairs );
+					url = getBioPortalUrl ( servicePath, paramValPairs );
 					log.trace ( "Invoking Bioportal REST with: \"{}\"", url );
 					
 					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -214,7 +215,9 @@ public class BioportalWebServiceUtils
 				}
 				catch ( IOException ex )
 				{
-					throw new OntologyServiceException ( "Error while accessing Bioportal: " + ex.getMessage (), ex );
+					throw new OntologyServiceException ( 
+						"Error while accessing Bioportal with '" + url + "': " + ex.getMessage (), ex 
+					);
 				} 
 			}
 		});
