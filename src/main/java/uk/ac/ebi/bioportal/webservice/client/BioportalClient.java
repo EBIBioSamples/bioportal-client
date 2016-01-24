@@ -45,6 +45,7 @@ import com.google.common.cache.CacheBuilder;
  * @author Marco Brandizi
  *
  */
+@SuppressWarnings ( "serial" )
 public class BioportalClient
 {	
 	/**
@@ -62,52 +63,14 @@ public class BioportalClient
 	 * 
 	 * This is used in {@link #getOntology(String)}
 	 */
-	@SuppressWarnings ( "serial" )
-	public static final Map<String, String> KNOWN_ONTOLOGY_CLASS_URI_PREFIXES = new HashMap<String, String> () {{
-		put ( "EFO", "http://www.ebi.ac.uk/efo/" );
-		put ( "TEO", "http://informatics.mayo.edu/TEO.owl#" );
-		put ( "HIVO0004", "http://bioportal/bioontology.org/ontologies/HIVO0004#" );
-		put ( "BP-METADATA", "http://protege.stanford.edu/ontologies/metadata/BioPortalMetadata.owl#" );
-		put ( "PEO", "http://knoesis.wright.edu/ParasiteExperiment.owl#" );
-		put ( "CCON", "http://cerrado.linkeddata.es/ecology/ccon#" );
-		put ( "IDODEN", "http://purl.bioontology.org/ontology/" );
-		put ( "BRIDG", "http://www.bridgmodel.org/owl#" );
-		put ( "ICD11-BODYSYSTEM", "http://who.int/bodysystem.owl#" );
-		put ( "AERO", "http://purl.obolibrary.org/obo/" );
-		put ( "ONLIRA", "http://vavlab.ee.boun.edu.tr/carera/onlira.owl#" );
-		put ( "OGI", "http://purl.obolibrary.org/obo/OGI.owl#" );
-		put ( "PROVO", "http://www.w3.org/ns/prov#" );
-		put ( "NEOMARK3", "http://www.neomark.eu/ontologies/neomark.owl#" );
-		put ( "NEOMARK4", "http://neomark.owl#" );
-		put ( "MIXS", "http://gensc.org/ns/mixs/" );
-		put ( "CTONT", "http://epoch.stanford.edu/ClinicalTrialOntology.owl#OperationalPlan" );
-		put ( "BAO", "http://www.bioassayontology.org/bao#" );
-		put ( "SIO", "http://semanticscience.org/resource/" );
-		put ( "NCBITAXON", "http://purl.bioontology.org/ontology/NCBITAXON/" );
-		put ( "UO", "http://purl.obolibrary.org/obo/" );
-		put ( "UBERON", "http://purl.obolibrary.org/obo/" );
-		put ( "MA", "http://purl.obolibrary.org/obo/" );
-		put ( "IAO", "http://purl.obolibrary.org/obo/" );
-		put ( "OBI", "http://purl.obolibrary.org/obo/" );
-		put ( "BFO", "http://purl.obolibrary.org/obo/" );
-		put ( "GO", "http://purl.obolibrary.org/obo/" );
-		put ( "HP", "http://purl.obolibrary.org/obo/" );
-		put ( "PO", "http://purl.obolibrary.org/obo/" );
-		put ( "BTO", "http://purl.obolibrary.org/obo/" );
-		put ( "CL", "http://purl.obolibrary.org/obo/" );
-		put ( "CLO", "http://purl.obolibrary.org/obo/" );
-		put ( "NCBITaxon", "http://purl.obolibrary.org/obo/" );
-		put ( "IDO", "http://purl.obolibrary.org/obo/" );
-		put ( "CHEBI", "http://purl.obolibrary.org/obo/" );
-		put ( "ORDO", "http://www.orpha.net/ORDO/" );
-		put ( "OMIM", "http://omim.org/entry/" );
-		put ( "MESH", "http://purl.bioontology.org/ontology/MESH/" );
-		put ( "LNC", "http://purl.bioontology.org/ontology/LNC/" );
-	}};
-	
-	private final static Map<String, String> uri2OntologyMap = new HashMap<> ();
-	
-	
+	public static final Map<String, String> KNOWN_ONTOLOGY_CLASS_URI_PREFIXES;
+
+	/**
+	 * Allows to do the reverse that {@link #KNOWN_ONTOLOGY_CLASS_URI_PREFIXES} allows to do: get an acronym from
+	 * a URI prefix.
+	 */
+	private static final Map<String, String> uri2OntologyMap;
+		
 	protected final String apiKey; 
 	private Map<String, OntologyClass> classCache;
 	private Map<String, Ontology> ontologyCache;
@@ -117,6 +80,50 @@ public class BioportalClient
 	
 	static
 	{
+		KNOWN_ONTOLOGY_CLASS_URI_PREFIXES = new HashMap<String, String> () {{
+			put ( "EFO", "http://www.ebi.ac.uk/efo/" );
+			put ( "TEO", "http://informatics.mayo.edu/TEO.owl#" );
+			put ( "HIVO0004", "http://bioportal/bioontology.org/ontologies/HIVO0004#" );
+			put ( "BP-METADATA", "http://protege.stanford.edu/ontologies/metadata/BioPortalMetadata.owl#" );
+			put ( "PEO", "http://knoesis.wright.edu/ParasiteExperiment.owl#" );
+			put ( "CCON", "http://cerrado.linkeddata.es/ecology/ccon#" );
+			put ( "IDODEN", "http://purl.bioontology.org/ontology/" );
+			put ( "BRIDG", "http://www.bridgmodel.org/owl#" );
+			put ( "ICD11-BODYSYSTEM", "http://who.int/bodysystem.owl#" );
+			put ( "AERO", "http://purl.obolibrary.org/obo/" );
+			put ( "ONLIRA", "http://vavlab.ee.boun.edu.tr/carera/onlira.owl#" );
+			put ( "OGI", "http://purl.obolibrary.org/obo/OGI.owl#" );
+			put ( "PROVO", "http://www.w3.org/ns/prov#" );
+			put ( "NEOMARK3", "http://www.neomark.eu/ontologies/neomark.owl#" );
+			put ( "NEOMARK4", "http://neomark.owl#" );
+			put ( "MIXS", "http://gensc.org/ns/mixs/" );
+			put ( "CTONT", "http://epoch.stanford.edu/ClinicalTrialOntology.owl#OperationalPlan" );
+			put ( "BAO", "http://www.bioassayontology.org/bao#" );
+			put ( "SIO", "http://semanticscience.org/resource/" );
+			put ( "NCBITAXON", "http://purl.bioontology.org/ontology/NCBITAXON/" );
+			put ( "UO", "http://purl.obolibrary.org/obo/" );
+			put ( "UBERON", "http://purl.obolibrary.org/obo/" );
+			put ( "MA", "http://purl.obolibrary.org/obo/" );
+			put ( "IAO", "http://purl.obolibrary.org/obo/" );
+			put ( "OBI", "http://purl.obolibrary.org/obo/" );
+			put ( "BFO", "http://purl.obolibrary.org/obo/" );
+			put ( "GO", "http://purl.obolibrary.org/obo/" );
+			put ( "HP", "http://purl.obolibrary.org/obo/" );
+			put ( "PO", "http://purl.obolibrary.org/obo/" );
+			put ( "BTO", "http://purl.obolibrary.org/obo/" );
+			put ( "CL", "http://purl.obolibrary.org/obo/" );
+			put ( "CLO", "http://purl.obolibrary.org/obo/" );
+			put ( "NCBITaxon", "http://purl.obolibrary.org/obo/" );
+			put ( "IDO", "http://purl.obolibrary.org/obo/" );
+			put ( "CHEBI", "http://purl.obolibrary.org/obo/" );
+			put ( "ORDO", "http://www.orpha.net/ORDO/" );
+			put ( "OMIM", "http://omim.org/entry/" );
+			put ( "MESH", "http://purl.bioontology.org/ontology/MESH/" );
+			put ( "LNC", "http://purl.bioontology.org/ontology/LNC/" );
+		}};
+		
+		uri2OntologyMap = new HashMap<> ();
+		
 		for ( String ontoId: KNOWN_ONTOLOGY_CLASS_URI_PREFIXES.keySet () )
 		{
 			String uriPrefix = KNOWN_ONTOLOGY_CLASS_URI_PREFIXES.get ( ontoId );
@@ -126,7 +133,7 @@ public class BioportalClient
 			else
 				uri2OntologyMap.put ( uriPrefix, ontoId );
 		}
-	}
+	} // static class init
 	
 	
 	
@@ -163,10 +170,9 @@ public class BioportalClient
 				"Cannot query Bioportal without term accession/URI" 
 			);
 			
-			String classUri = null;
+			String classUri = accession;
 			if ( accession.startsWith ( "http://" ) || accession.startsWith ( "https://" ) )
 			{
-				classUri = accession;
 				if ( ontologyAcronym == null )
 				{
 					// We try to resolve unspecified acronym by means of some heuristics, and using known ontologies.
@@ -190,7 +196,7 @@ public class BioportalClient
 							return null;
 						}
 					} // brkIdx
-				} // ontologyAcronym
+				} // null ontologyAcronym
 				
 				if ( "OMIM".equals ( ontologyAcronym ) )
 				{
@@ -199,12 +205,11 @@ public class BioportalClient
 					if ( classUri.startsWith ( ontoPrefx ) )
 						classUri = classUri.substring ( ontoPrefx.length () );
 				}
-			} 
+			} // http case 
 			else
 			{
 				// accession is not a URI
 
-				// Special case, doesn't work with the URI
 				if ( !"OMIM".equals ( ontologyAcronym ) )
 				{
 					String ontoUriPrefix = null;
@@ -217,7 +222,23 @@ public class BioportalClient
 					classUri = ontoUriPrefix + accession;
 				}
 			}
-			
+
+			classUri = StringUtils.trimToNull ( classUri );
+			if ( classUri == null ) 
+			{
+				synchronized ( this ) 
+				{
+					log.error ( "\n\n------------------- BioportalClient, classUri == null! -----------------" );
+					log.error ( "accession: '{}', acronym: '{}'", accession, ontologyAcronym );
+					log.error ( "KNOWN_ONTOLOGY_CLASS_URI_PREFIXES:\n{}", KNOWN_ONTOLOGY_CLASS_URI_PREFIXES );
+					log.error ( "uri2OntologyMap:", uri2OntologyMap );
+					log.error ( "\n\n\n" );
+				}
+				
+				throw new IllegalArgumentException ( 
+					"Cannot invoke Bioportal with <" + ontologyAcronym + "/" + classUri + ">" 
+				);
+			}
 			
 			synchronized ( classUri.intern () )
 			{

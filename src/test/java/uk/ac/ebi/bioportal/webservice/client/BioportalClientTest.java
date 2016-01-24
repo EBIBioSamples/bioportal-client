@@ -94,7 +94,12 @@ public class BioportalClientTest
 		// This is a special case
 		OntologyClass omimClass = bpcli.getOntologyClass ( null, "http://omim.org/entry/233420" );
 		assertNotNull ( "OMIM term not found!", omimClass );
-		log.info ( "Result for OMIM: {}", omimClass );
+		log.info ( "Result for OMIM (straight URI): {}", omimClass );
+
+		omimClass = bpcli.getOntologyClass ( "OMIM", "http://omim.org/entry/233420" );
+		assertNotNull ( "OMIM term not found!", omimClass );
+		log.info ( "Result for OMIM (acronym + URI): {}", omimClass );
+
 	}
 	
 	@Test
