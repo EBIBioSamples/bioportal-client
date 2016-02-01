@@ -149,7 +149,7 @@ public class BioportalOntoTermDiscoverer extends OntologyTermDiscoverer
 	}
 	
 	/**
-	 * True if you want to use {@link #getPreferredOntologies()} only for {@link #getOntologyTerms(String, String)}.
+	 * True if you want to use {@link #getPreferredOntologies()} only, for {@link #getOntologyTerms(String, String)}.
 	 */
 	public boolean usePreferredOntologiesOnly ()
 	{
