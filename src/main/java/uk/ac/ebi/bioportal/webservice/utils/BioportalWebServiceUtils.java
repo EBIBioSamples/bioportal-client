@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.bioportal.webservice.exceptions.OntologyServiceException;
 import uk.ac.ebi.bioportal.webservice.model.OntologyClass;
 import uk.ac.ebi.utils.runcontrol.ChainExecutor;
+import uk.ac.ebi.utils.runcontrol.DynamicRateExecutor;
 import uk.ac.ebi.utils.runcontrol.RateLimitedExecutor;
 import uk.ac.ebi.utils.runcontrol.StatsExecutor;
 
@@ -32,6 +33,56 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class BioportalWebServiceUtils
 {
 	/**
+	 * Our own version, that adapts dynamically to the current performance, using 
+	 * {@link BioportalWebServiceUtils#STATS_WRAPPER}.
+	 */
+	protected static class BioportalRateLimiter extends DynamicRateExecutor
+	{
+		public final double maxRate; 
+		
+		public BioportalRateLimiter () {
+			this ( 15 ); // This was advised by Bioportal people
+		}
+
+		public BioportalRateLimiter ( double maxRate )
+		{
+			super ( maxRate );
+			this.maxRate = maxRate;
+		}
+
+
+		@Override
+		protected synchronized double setNewRate ()
+		{
+			int totCalls = STATS_WRAPPER.getLastTotalCalls (); 
+			if ( totCalls == 0 ) return maxRate;
+			
+			double failedCalls = STATS_WRAPPER.getLastFailedCalls () / (double) totCalls;			
+			if ( failedCalls <= 0.1 ) 
+			{
+				if ( Math.abs ( this.getRate () / this.maxRate - 1 ) > 1d/1000 )
+					// was throttling, going back to normal
+					log.info ( "Bioportal back to good performance, throttling ends" );
+				return maxRate;
+			}
+	
+			// Degrade the performance gently
+			//
+			double rate = 
+				failedCalls <= 0.30 ? maxRate * 0.8 
+				: failedCalls <= 0.50 ? maxRate * 0.5 
+				: failedCalls <= 0.70 ? maxRate * 0.2
+				: 0.5; 
+			
+			if ( Math.abs ( this.getRate () / rate - 1 ) > 1d/1000 )
+				// Wasn't throttling, starting now
+				log.info ( "Throttling Bioportal to avoid too many fails, calls are slowed down to {} calls/s", rate );
+		
+			return rate;
+		} // setNewRate
+	}	// BioportalRateLimiter
+	
+	/**
 	 * Send in a property with this to change the period that we log statistics on issued calls.
 	 */
 	public static final String STATS_SAMPLING_TIME_PROP_NAME = "uk.ac.ebi.bioportal.stats_sampling_time";
@@ -44,7 +95,8 @@ public class BioportalWebServiceUtils
 	/**
 	 * We provide these, in case you want to tweak their parameters. 
 	 */
-	public static final RateLimitedExecutor RATE_LIMITING_WRAPPER = new RateLimitedExecutor ( 15 );
+	public static final DynamicRateExecutor RATE_LIMITING_WRAPPER = new BioportalRateLimiter (); 
+			
 	public static final StatsExecutor STATS_WRAPPER = new StatsExecutor ( 
 		"BioPortal", Long.parseLong ( System.getProperty ( STATS_SAMPLING_TIME_PROP_NAME, "" + 5 * 60 * 1000 ) ) 
 	);
